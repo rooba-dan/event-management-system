@@ -1,5 +1,20 @@
+const jwt = require('jsonwebtoken');
+const User = require('../models/User');
 const Event = require('../models/Event');
 const { sendEventNotification } = require('../utils/mailer');
+
+module.exports = async (req, res, next) => {
+  try {
+    const token = req.header('Authorization').replace('Bearer ', '');
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id);
+    if (!user) throw new Error();
+    req.user = user;
+    next();
+  } catch (error) {
+    res.status(401).json({ message: 'Please authenticate' });
+  }
+};
 
 exports.createEvent = async (req, res) => {
   try {
@@ -53,10 +68,12 @@ exports.rsvpEvent = async (req, res) => {
   try {
     const event = await Event.findById(req.params.id);
     if (!event) return res.status(404).json({ message: 'Event not found' });
-    if (event.attendees.includes(req.user.id)) {
+    if (event.attendees?.includes(req.user.id)) {
       return res.status(400).json({ message: 'Already RSVP\'d to this event' });
     }
+    event.attendees = event.attendees || [];
     event.attendees.push(req.user.id);
+    console.log('email backend', req.user);
     await event.save();
     await sendEventNotification(req.user.email, event);
     res.json({ message: 'RSVP successful' });

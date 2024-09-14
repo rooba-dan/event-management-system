@@ -1,16 +1,35 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { Link } from 'react-router-dom';
+import { ThemeContext } from '../context/ThemeContext';
 
 function Home() {
+  const { darkMode } = useContext(ThemeContext);
+
   return (
-    <div className="text-center">
-      <h1 className="text-4xl font-bold mb-4">Welcome to Event Management System</h1>
-      <p className="mb-8">Discover and create amazing events in your area!</p>
-      <div className="space-x-4">
-        <Link to="/events" className="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600">
+    <div className="text-center animate-fadeIn">
+      <h1 className={`text-5xl font-bold mb-6 ${
+        darkMode ? 'text-yellow-300' : 'text-indigo-700'
+      } transition-colors duration-300 animate-slideIn`}>
+        Welcome to Event Management System
+      </h1>
+      <p className={`text-xl mb-10 ${
+        darkMode ? 'text-gray-300' : 'text-gray-700'
+      } transition-colors duration-300 animate-slideIn`}>
+        Discover and create amazing events in your area!
+      </p>
+      <div className="space-x-6">
+        <Link to="/events" className={`${
+          darkMode 
+            ? 'bg-purple-700 hover:bg-purple-800' 
+            : 'bg-blue-600 hover:bg-blue-700'
+        } text-white px-8 py-3 rounded-full text-lg font-semibold transition-all duration-200 transform hover:scale-105 inline-block`}>
           Browse Events
         </Link>
-        <Link to="/create-event" className="bg-green-500 text-white px-6 py-2 rounded hover:bg-green-600">
+        <Link to="/create-event" className={`${
+          darkMode 
+            ? 'bg-green-700 hover:bg-green-800' 
+            : 'bg-green-600 hover:bg-green-700'
+        } text-white px-8 py-3 rounded-full text-lg font-semibold transition-all duration-200 transform hover:scale-105 inline-block`}>
           Create Event
         </Link>
       </div>

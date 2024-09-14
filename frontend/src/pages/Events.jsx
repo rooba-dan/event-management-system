@@ -1,11 +1,12 @@
-// client/src/pages/Events.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { getEvents } from '../services/eventService';
 import EventList from '../components/Events/EventList';
+import { ThemeContext } from '../context/ThemeContext';
 
 function Events() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { darkMode } = useContext(ThemeContext);
 
   useEffect(() => {
     fetchEvents();
@@ -22,11 +23,13 @@ function Events() {
     }
   };
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <div className="text-center">Loading...</div>;
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-4">Upcoming Events</h1>
+    <div className="animate-fadeIn">
+      <h1 className={`text-3xl font-bold mb-6 ${
+        darkMode ? 'text-yellow-300' : 'text-indigo-700'
+      } transition-colors duration-300`}>Upcoming Events</h1>
       <EventList events={events} />
     </div>
   );

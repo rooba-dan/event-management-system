@@ -5,10 +5,12 @@ import { useAuth } from '../../hooks/useAuth';
 import { useNotification } from '../../hooks/useNotification';
 import { formatDate } from '../../utils/dateUtils';
 import Button from '../common/Button';
+import UpdateEventModal from './UpdateEventModal';
 
 function EventDetails() {
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -31,10 +33,22 @@ function EventDetails() {
   };
 
   const handleRSVP = async () => {
+    if (!user) {
+      addNotification('You must be logged in to RSVP', 'warning');
+      return;
+    }
+    if (event.attendees.includes(user.id)) {
+      addNotification('You have already RSVP\'d to this event', 'info');
+      return;
+    }
+    if (event.attendees.length >= event.capacity) {
+      addNotification('This event has reached its capacity', 'warning');
+      return;
+    }
     try {
       await rsvpEvent(id);
       addNotification('RSVP successful!', 'success');
-      fetchEvent(); // Refresh event data after RSVP
+      fetchEvent();
     } catch (error) {
       console.error('Error RSVPing to event:', error);
       addNotification('Failed to RSVP', 'error');
@@ -54,10 +68,15 @@ function EventDetails() {
     }
   };
 
+  const handleUpdateEvent = (updatedEvent) => {
+    setEvent(updatedEvent);
+    addNotification('Event updated successfully', 'success');
+  };
+
   if (loading) return <div>Loading...</div>;
   if (!event) return <div>Event not found</div>;
 
-  const isOrganizer = user && event.organizer._id === user.id;
+  const isOrganizer = user && event.organizer && event.organizer._id === user.id;
   const hasRSVPd = user && event.attendees.includes(user.id);
 
   return (
@@ -66,7 +85,7 @@ function EventDetails() {
       <p className="text-gray-600 mb-2">Date: {formatDate(event.date)}</p>
       <p className="text-gray-600 mb-4">Location: {event.location}</p>
       <p className="mb-4">{event.description}</p>
-      <p className="mb-4">Organizer: {event.organizer.name}</p>
+      <p className="mb-4">Organizer: {event.organizer ? event.organizer.name : 'Unknown'}</p>
       <p className="mb-4">Capacity: {event.attendees.length} / {event.capacity}</p>
       
       {user && !isOrganizer && !hasRSVPd && (
@@ -77,13 +96,22 @@ function EventDetails() {
       
       {isOrganizer && (
         <>
-          <Button onClick={() => navigate(`/edit-event/${id}`)} className="bg-blue-500 text-white hover:bg-blue-600 mr-2">
+          <Button onClick={() => setIsUpdateModalOpen(true)} className="bg-blue-500 text-white hover:bg-blue-600 mr-2">
             Edit Event
           </Button>
           <Button onClick={handleDelete} className="bg-red-500 text-white hover:bg-red-600">
             Delete Event
           </Button>
         </>
+      )}
+
+      {isUpdateModalOpen && (
+        <UpdateEventModal
+          event={event}
+          isOpen={isUpdateModalOpen}
+          onClose={() => setIsUpdateModalOpen(false)}
+          onEventUpdated={handleUpdateEvent}
+        />
       )}
     </div>
   );
